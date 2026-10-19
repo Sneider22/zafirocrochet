@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit2, Trash2, Tag, Download, RotateCcw, Search, CheckSquare, Package, Database, Lock, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { matchesSearchQuery } from '../lib/searchUtils';
 
 const normalizeTodo = (item) => {
   if (typeof item === 'string') {
@@ -150,8 +151,7 @@ export default function AdminModal({
   };
 
   const filteredAdminProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (Array.isArray(p.category) ? p.category.some(c => c.toLowerCase().includes(searchQuery.toLowerCase())) : p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    matchesSearchQuery(p, searchQuery)
   );
 
   const filteredTodos = todos.filter(t => todoFilter === 'all' || t.status === todoFilter);
