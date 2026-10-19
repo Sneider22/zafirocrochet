@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from './ProductCard';
+import { normalizeText, matchesSearchQuery } from '../lib/searchUtils';
 
 const CATEGORIES = [
   { id: 'all', label: 'Todos' },
@@ -15,29 +16,54 @@ const CATEGORIES = [
 export default function CatalogSection({ products, onOpenDetail, onAddToCart }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12; // 12 items per page for cleaner pagination
+
+  // Google-like search suggestions (máximo 3)
+  const suggestions = useMemo(() => {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const seenNames = new Set();
+    const results = [];
+
+    for (const p of products) {
+      if (matchesSearchQuery(p, query)) {
+        const cleanName = p.name ? p.name.trim() : '';
+        const norm = normalizeText(cleanName);
+        if (cleanName && !seenNames.has(norm)) {
+          seenNames.add(norm);
+          results.push(cleanName);
+          if (results.length === 3) break;
+        }
+      }
+    }
+    return results;
+  }, [products, searchTerm]);
+
+  // Cerrar sugerencias al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filter logic
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       let matchesCat = selectedCategory === 'all';
       if (!matchesCat) {
-        if (Array.isArray(p.category)) {
-          matchesCat = p.category.includes(selectedCategory);
-        } else {
-          matchesCat = p.category === selectedCategory;
-        }
+        const catArr = Array.isArray(p.category) ? p.category : [p.category];
+        matchesCat = catArr.some(c => normalizeText(c) === normalizeText(selectedCategory));
       }
 
-      const queryWords = searchTerm.toLowerCase().trim().split(' ').filter(w => w.length > 0);
-      const matchesSearch = queryWords.every(word => {
-        const nameMatch = p.name.toLowerCase().includes(word);
-        const catMatch = Array.isArray(p.category) 
-          ? p.category.some(c => c.toLowerCase().includes(word))
-          : p.category.toLowerCase().includes(word);
-        return nameMatch || catMatch;
-      });
+      const matchesSearch = matchesSearchQuery(p, searchTerm);
 
       return matchesCat && matchesSearch;
     });
@@ -96,26 +122,72 @@ export default function CatalogSection({ products, onOpenDetail, onAddToCart }) 
       {/* Controls Bar */}
       <div className="space-y-3.5 mb-6 sm:mb-8">
         
-        {/* Search Input */}
-        <div className="max-w-md mx-auto relative px-1">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Buscar amigurumis, ramos, llaveros..."
-            className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-full bg-white border border-[#ffccd5] text-[#590d22] placeholder-[#800f2f]/40 focus:outline-none focus:ring-2 focus:ring-[#ff8fa3] shadow-sm transition-all text-xs sm:text-sm font-medium"
-          />
-          <Search className="w-4 h-4 text-[#800f2f]/50 absolute left-4 top-1/2 -translate-y-1/2" />
-          {searchTerm && (
-            <button 
-              onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-[#800f2f]/50 hover:text-[#590d22]"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+        {/* Search Input Container */}
+        <div ref={searchContainerRef} className="max-w-md mx-auto relative px-1">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onFocus={() => {
+                if (searchTerm.trim()) setShowSuggestions(true);
+              }}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(true);
+                setCurrentPage(1);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                  setShowSuggestions(false);
+                }
+              }}
+              placeholder="Buscar amigurumis, ramos, llaveros..."
+              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-full bg-white border border-[#ffccd5] text-[#590d22] placeholder-[#800f2f]/40 focus:outline-none focus:ring-2 focus:ring-[#ff8fa3] shadow-sm transition-all text-xs sm:text-sm font-medium"
+            />
+            <Search className="w-4 h-4 text-[#800f2f]/50 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            {searchTerm && (
+              <button 
+                type="button"
+                onClick={() => { 
+                  setSearchTerm(''); 
+                  setShowSuggestions(false); 
+                  setCurrentPage(1); 
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-[#800f2f]/50 hover:text-[#590d22] cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Google-style Suggestions Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute left-1 right-1 top-full mt-1.5 z-30 bg-white rounded-2xl border border-[#ffccd5] shadow-xl shadow-[#ff4d6d]/10 overflow-hidden py-1 divide-y divide-[#fff0f3] animate-toast">
+              {suggestions.map((suggestion, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Evita desenfocar antes de seleccionar
+                    setSearchTerm(suggestion);
+                    setSelectedCategory('all');
+                    setShowSuggestions(false);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-[#fff0f3] transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Search className="w-3.5 h-3.5 text-[#ff8fa3] group-hover:text-[#ff4d6d] shrink-0 transition-colors" />
+                    <span className="text-xs sm:text-sm font-semibold text-[#800f2f] group-hover:text-[#ff4d6d] truncate transition-colors">
+                      {suggestion}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#ff8fa3] group-hover:text-[#ff4d6d] font-bold shrink-0 uppercase tracking-wider">
+                    Sugerencia
+                  </span>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
