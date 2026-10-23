@@ -1,4 +1,6 @@
-# Zafiro Crochet
+# Zafiro Crochet 🧶
+
+[![Instagram](https://img.shields.io/badge/Instagram-@zafirocrochet__ve-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/zafirocrochet_ve/)
 
 Plataforma web para la tienda y administración de **Zafiro Crochet**, una marca de piezas hechas a mano en Caracas, Venezuela. Incluye catálogo de productos, carrito de compras con integración a WhatsApp y un panel de administración con gestión de inventario, pedidos pendientes y respaldos — todo sincronizado con Supabase en tiempo real.
 
@@ -41,5 +43,7 @@ Plataforma web para la tienda y administración de **Zafiro Crochet**, una marca
 | Persistencia offline | LocalStorage |
 
 ---
+
+ Sigue a la marca en [Instagram (@zafirocrochet_ve)](https://www.instagram.com/zafirocrochet_ve/)  
 
 &copy; Zafiro Crochet · Caracas, Venezuela
