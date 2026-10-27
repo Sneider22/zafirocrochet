@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, Tag, Download, RotateCcw, Search, CheckSquare, Package, Database, Lock, Loader2 } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Tag, Download, RotateCcw, Search, CheckSquare, Package, Database, Lock, Loader2, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { matchesSearchQuery } from '../lib/searchUtils';
+
+// Supabase Auth requiere un email: el usuario se traduce a usuario@zafirocrochet.local
+const ADMIN_EMAIL_DOMAIN = 'zafirocrochet.local';
+const toAdminEmail = (user) => {
+  const clean = user.trim().toLowerCase();
+  return clean.includes('@') ? clean : `${clean}@${ADMIN_EMAIL_DOMAIN}`;
+};
 
 const normalizeTodo = (item) => {
   if (typeof item === 'string') {
@@ -27,6 +34,7 @@ export default function AdminModal({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
   const [activeTab, setActiveTab] = useState('products'); // 'products', 'todos', 'backup'
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -44,6 +52,21 @@ export default function AdminModal({
   const [newTodoTitle, setNewTodoTitle] = useState('');
   const [todoFilter, setTodoFilter] = useState('all'); // 'all', 'red', 'yellow', 'green'
   const [loadingTodos, setLoadingTodos] = useState(false);
+
+  // Sesión real de Supabase Auth (se mantiene entre visitas)
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAuthenticated(!!data.session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch todos from Supabase when tab is open
   useEffect(() => {
@@ -75,13 +98,32 @@ export default function AdminModal({
 
   if (!isOpen) return null;
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    if ((username === 'sofiavsh' && password === 'pato123') || (username === 'admin' && password === 'admin') || password === 'zafiro') {
-      setIsAuthenticated(true);
-    } else {
+    if (!supabase) {
+      alert("El panel no está conectado a Supabase");
+      return;
+    }
+    if (!username.trim() || !password) return;
+
+    setLoggingIn(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: toAdminEmail(username),
+      password
+    });
+    setLoggingIn(false);
+    setPassword('');
+
+    if (error) {
       alert("Credenciales incorrectas");
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase?.auth.signOut();
+    localStorage.removeItem('adminTodos');
+    setTodos([]);
+    setUsername('');
   };
 
   const handleAddTodo = async (e) => {
@@ -168,12 +210,23 @@ export default function AdminModal({
           <h2 className="text-xl font-black text-[#590d22] flex items-center gap-2">
             <Lock className="w-5 h-5 text-[#ff4d6d]" /> Panel Zafiro Admin
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white text-[#590d22] transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 rounded-full border border-[#ffccd5] bg-white text-[#590d22] text-xs font-bold flex items-center gap-1.5 hover:bg-[#ff4d6d] hover:text-white transition-colors cursor-pointer"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Salir
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-white text-[#590d22] transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Login Form Screen */}
@@ -213,9 +266,10 @@ export default function AdminModal({
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-full bg-gradient-to-r from-[#ff8fa3] to-[#ff4d6d] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2"
+                disabled={loggingIn}
+                className="w-full py-3 rounded-full bg-gradient-to-r from-[#ff8fa3] to-[#ff4d6d] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2"
               >
-                Entrar al Panel
+                {loggingIn ? (<><Loader2 className="w-4 h-4 animate-spin" /> Entrando...</>) : 'Entrar al Panel'}
               </button>
             </form>
           </div>
