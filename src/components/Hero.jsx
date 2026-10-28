@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { ArrowDown, Heart, Sparkles, MessageCircle, Hand, Palette } from 'lucide-react';
+import { ArrowDown, Heart, Sparkles, Hand, Palette } from 'lucide-react';
 
-const PHONE_NUMBER = "584142826330";
 const TILES_PER_ROW = 8;
 
 // Fila de fotos que se desliza sola. La lista va duplicada para que el loop no tenga cortes.
@@ -71,8 +70,6 @@ export default function Hero({ products = [], onOpenDetail }) {
   const rows = [showcase.slice(0, TILES_PER_ROW), showcase.slice(TILES_PER_ROW)];
   const designsLabel = products.length >= 10 ? `+${Math.floor(products.length / 10) * 10}` : `${products.length}`;
 
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${PHONE_NUMBER}&text=${encodeURIComponent('¡Hola Zafiro Crochet! 🧶 Quiero hacer un pedido.')}`;
-
   return (
     <section className="relative overflow-hidden">
       {/* Background Orbs */}
@@ -106,15 +103,6 @@ export default function Hero({ products = [], onOpenDetail }) {
             >
               Ver Catálogo <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 animate-bounce" />
             </button>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 whitespace-nowrap px-5 py-3 sm:px-7 sm:py-4 rounded-full bg-white border-2 border-[#ffccd5] text-[#590d22] font-bold text-sm sm:text-lg hover:border-[#ff8fa3] hover:-translate-y-0.5 active:translate-y-0 transition-all"
-            >
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
-              <span><span className="hidden sm:inline">Pedir por </span>WhatsApp</span>
-            </a>
           </div>
 
           {/* Datos de confianza */}
