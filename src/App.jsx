@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { initialProducts } from './data/products';
-
-// Los productos de oferta son SIEMPRE los originales con oldPrice (fijos, no cambian)
-const fixedOfferProducts = initialProducts.filter(p => p.oldPrice);
 import Header from './components/Header';
 import Hero from './components/Hero';
 import OffersSection from './components/OffersSection';
@@ -87,10 +84,10 @@ export default function App() {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Fetch products from Supabase and merge with initial products
+  // Fetch products from Supabase (el catálogo completo vive allí; products.js es solo respaldo)
   useEffect(() => {
     const fetchProducts = async () => {
-      // Si Supabase no está configurado, mostramos los productos locales directamente
+      // Si Supabase no está configurado, mostramos los productos locales de respaldo
       if (!supabase) {
         setProducts(initialProducts);
         setLoadingProducts(false);
@@ -108,10 +105,7 @@ export default function App() {
           console.error("Error fetching products:", error);
           setProducts(initialProducts);
         } else {
-          // Los de Supabase van primero (más recientes), luego los originales de siempre
-          const supabaseIds = new Set((data || []).map(p => String(p.id)));
-          const filteredInitial = initialProducts.filter(p => !supabaseIds.has(String(p.id)));
-          setProducts([...(data || []), ...filteredInitial]);
+          setProducts(data || []);
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -196,6 +190,7 @@ export default function App() {
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const offerProducts = products.filter(p => p.old_price || p.oldPrice);
 
   return (
     <div className="min-h-screen flex flex-col font-sans pb-12">
@@ -217,13 +212,13 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* Ofertas: siempre los mismos 4 productos originales, nunca cambian */}
+            {/* Ofertas: los productos que Sofía marque en oferta desde el panel */}
             <OffersSection
-              products={fixedOfferProducts}
+              products={offerProducts}
               onOpenDetail={(prod) => setSelectedDetailProduct(prod)}
               onAddToCart={(prod) => handleAddToCart(prod, 1)}
             />
-            {/* Catálogo: productos de Supabase (nuevos) + originales */}
+            {/* Catálogo completo desde Supabase */}
             <CatalogSection
               products={products}
               onOpenDetail={(prod) => setSelectedDetailProduct(prod)}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, Tag, Download, RotateCcw, Search, CheckSquare, Package, Database, Lock, Loader2, LogOut } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Tag, Download, Search, CheckSquare, Package, Database, Lock, Loader2, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { matchesSearchQuery } from '../lib/searchUtils';
 
@@ -28,8 +28,7 @@ export default function AdminModal({
   onOpenProductForm, 
   onToggleOffer, 
   onDeleteProduct, 
-  onExportJSON, 
-  onResetDefault 
+  onExportJSON
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
@@ -355,7 +354,7 @@ export default function AdminModal({
                               <span className="font-extrabold text-[#ff4d6d]">${p.price.toFixed(2)}</span>
                               {isOffer && (
                                 <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                                  OF: ${p.oldPrice.toFixed(2)}
+                                  OF: ${Number(p.old_price || p.oldPrice).toFixed(2)}
                                 </span>
                               )}
                             </div>
@@ -523,7 +522,7 @@ export default function AdminModal({
 
               {/* TAB 3: BACKUP */}
               {activeTab === 'backup' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <div className="max-w-sm mx-auto">
                   <div className="p-5 rounded-2xl bg-white border border-[#ffccd5] space-y-3">
                     <h4 className="font-extrabold text-[#590d22] text-sm flex items-center gap-2">
                       <Download className="w-4 h-4 text-[#ff4d6d]" /> Descargar Respaldos (JSON)
@@ -536,21 +535,6 @@ export default function AdminModal({
                       className="w-full py-2.5 rounded-full border-2 border-[#ff8fa3] text-[#ff4d6d] font-extrabold text-xs hover:bg-[#ff8fa3] hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Download className="w-4 h-4" /> Exportar a JSON
-                    </button>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-white border border-rose-200 space-y-3">
-                    <h4 className="font-extrabold text-rose-600 text-sm flex items-center gap-2">
-                      <RotateCcw className="w-4 h-4" /> Restablecer a Inicial
-                    </h4>
-                    <p className="text-xs text-[#800f2f]/80 leading-relaxed">
-                      Borra las modificaciones guardadas en este navegador y restaura el catálogo original inicial.
-                    </p>
-                    <button
-                      onClick={onResetDefault}
-                      className="w-full py-2.5 rounded-full border-2 border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <RotateCcw className="w-4 h-4" /> Restablecer Catálogo
                     </button>
                   </div>
                 </div>

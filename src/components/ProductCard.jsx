@@ -4,7 +4,8 @@ import { ShoppingBag } from 'lucide-react';
 export default function ProductCard({ product, onOpenDetail, onAddToCart }) {
   const mainImage = product.image || (product.images && product.images[0]) || '/logo.jpg';
   const displayCategory = Array.isArray(product.category) ? product.category[0] : product.category;
-  const isOffer = !!product.oldPrice;
+  const oldPrice = product.old_price || product.oldPrice;
+  const isOffer = !!oldPrice;
 
   return (
     <article className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-[#ffccd5]/60 shadow-sm hover:shadow-xl hover:shadow-[#ff4d6d]/15 transition-all duration-300 flex flex-col h-full">
@@ -53,7 +54,7 @@ export default function ProductCard({ product, onOpenDetail, onAddToCart }) {
               </span>
               {isOffer && (
                 <span className="text-[10px] sm:text-xs text-[#800f2f]/60 line-through font-medium">
-                  ${product.oldPrice.toFixed(2)}
+                  ${Number(oldPrice).toFixed(2)}
                 </span>
               )}
             </div>
