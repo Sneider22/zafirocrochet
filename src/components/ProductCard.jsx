@@ -16,8 +16,10 @@ export default function ProductCard({ product, onOpenDetail, onAddToCart }) {
         className="relative aspect-square overflow-hidden bg-[#fff0f3] cursor-pointer"
       >
         <img 
-          src={mainImage} 
-          alt={product.name} 
+          src={mainImage}
+          alt={product.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { e.target.src = '/logo.jpg'; }}
         />

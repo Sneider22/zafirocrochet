@@ -344,6 +344,8 @@ export default function AdminModal({
                           <img
                             src={p.image || (p.images && p.images[0]) || 'logo.jpg'}
                             alt={p.name}
+                            loading="lazy"
+                            decoding="async"
                             className="w-14 h-14 object-cover rounded-xl border border-[#ffccd5]"
                             onError={(e) => { e.target.src = 'logo.jpg'; }}
                           />

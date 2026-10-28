@@ -64,7 +64,9 @@ export default function CartModal({ isOpen, onClose, cart, onUpdateQuantity, onR
               <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-[#fff0f3]/40 border border-[#ffccd5]/50">
                 <img 
                   src={item.image || (item.images && item.images[0]) || 'logo.jpg'} 
-                  alt={item.name} 
+                  alt={item.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-16 h-16 object-cover rounded-xl border border-[#ffccd5] flex-shrink-0"
                   onError={(e) => { e.target.src = 'logo.jpg'; }}
                 />

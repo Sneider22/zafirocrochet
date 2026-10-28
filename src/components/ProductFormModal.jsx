@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Save, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { optimizeImage } from '../lib/imageUtils';
 
 const CATEGORY_OPTIONS = [
   { id: 'ramos', label: '🌹 Ramos' },
@@ -113,7 +114,8 @@ export default function ProductFormModal({ isOpen, onClose, editingProduct, onSa
     try {
       // 1. Subir las imágenes nuevas a Supabase Storage
       const uploadedUrls = [];
-      for (const file of imageFiles) {
+      for (const originalFile of imageFiles) {
+        const file = await optimizeImage(originalFile);
         const ext = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
         const filePath = `products/${fileName}`;
