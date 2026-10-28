@@ -1,8 +1,19 @@
 # Zafiro Crochet 🧶
 
 [![Instagram](https://img.shields.io/badge/Instagram-@zafirocrochet__ve-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/zafirocrochet_ve/)
+[![Tienda en vivo](https://img.shields.io/badge/Tienda-zafirocrochet.vercel.app-ff4d6d?style=for-the-badge&logo=vercel&logoColor=white)](https://zafirocrochet.vercel.app/)
 
-Plataforma web para la tienda y administración de **Zafiro Crochet**, una marca de piezas hechas a mano en Caracas, Venezuela. Incluye catálogo de productos, carrito de compras con integración a WhatsApp y un panel de administración con gestión de inventario, pedidos pendientes y respaldos — todo sincronizado con Supabase en tiempo real.
+Tienda en línea y panel de administración de **Zafiro Crochet**, una marca de piezas tejidas a mano en Caracas, Venezuela. Los clientes exploran el catálogo y envían su pedido por WhatsApp; la administradora gestiona productos, precios, ofertas y pedidos desde un panel privado, sin tocar código.
+
+---
+
+## Capturas
+
+| Inicio | Catálogo | Producto | Carrito |
+| :---: | :---: | :---: | :---: |
+| <a href="docs/screenshots/01-inicio.jpg"><img src="docs/screenshots/01-inicio.jpg" width="190" alt="Inicio con carrusel de creaciones"></a> | <a href="docs/screenshots/02-catalogo.jpg"><img src="docs/screenshots/02-catalogo.jpg" width="190" alt="Catálogo con categorías tipo historias"></a> | <a href="docs/screenshots/03-producto.jpg"><img src="docs/screenshots/03-producto.jpg" width="190" alt="Detalle de producto con galería"></a> | <a href="docs/screenshots/04-carrito.jpg"><img src="docs/screenshots/04-carrito.jpg" width="190" alt="Carrito con envío por WhatsApp"></a> |
+
+<sub>Vista en celular. Haz clic en una captura para verla en tamaño completo.</sub>
 
 ---
 
@@ -10,40 +21,43 @@ Plataforma web para la tienda y administración de **Zafiro Crochet**, una marca
 
 ### Tienda
 
-- Catálogo dinámico con filtros por categoría y búsqueda en tiempo real.
-- Sección de ofertas destacada, separada del catálogo principal.
-- Modal de detalle por producto con galería de imágenes, descripción completa y selector de cantidad.
-- Las imágenes se muestran completas sin recortes, con dimensiones consistentes sin importar el formato original.
-- Carrito de compras persistente (LocalStorage) con control de cantidades y opción de empaque para regalo.
-- Envío del pedido directo a WhatsApp con el detalle formateado y un saludo dinámico según la hora del día.
+- Inicio con carrusel animado de las creaciones; cada foto abre su producto.
+- Categorías estilo *historias destacadas* de Instagram, con foto de portada y contador generados a partir del catálogo.
+- Búsqueda en tiempo real con sugerencias, tolerante a acentos.
+- Sección de ofertas dinámica: muestra los productos que la administradora marque en oferta.
+- Detalle de producto con galería de fotos, descripción y selector de cantidad.
+- Carrito persistente con opción de caja de regalo.
+- Envío del pedido a WhatsApp con el detalle formateado y un saludo según la hora del día.
 
-### Panel de administración (Zafiro Admin)
+### Panel de administración
 
-- Acceso protegido.
-- Crear, editar y eliminar productos con carga múltiple de fotos a Supabase Storage.
-- Marcar o desmarcar productos en oferta con un toque; el precio anterior se calcula automáticamente.
-- Gestión de pedidos pendientes con semáforo de estatus:
-  - **Rojo** — Por empezar (asignado automáticamente al crear el pedido).
-  - **Amarillo** — En proceso.
-  - **Verde** — Listo o entregado.
-- Filtros por estatus con contadores en tiempo real, sincronizados con Supabase.
-- Respaldo del catálogo completo en formato JSON descargable.
+- Acceso con usuario y contraseña mediante **Supabase Auth**.
+- Crear, editar y eliminar productos, con varias fotos y varias categorías por producto.
+- Marcar o quitar ofertas con un toque; el precio anterior se calcula automáticamente.
+- Pedidos pendientes con semáforo de estatus: 🔴 por empezar, 🟡 en proceso, 🟢 listo.
+
+### Rendimiento y seguridad
+
+- **Row Level Security** en Supabase: el catálogo es de lectura pública y solo la administradora puede modificarlo.
+- Las fotos se cargan a medida que se hace scroll (*lazy loading*).
+- Las fotos subidas desde el panel se ajustan automáticamente a 1600 px antes de guardarse (de ~8 MB a ~500 KB, sin diferencia visible).
 
 ---
 
 ## Tecnologías
 
 | Capa | Herramienta |
-|---|---|
+| :--- | :--- |
 | Frontend | React 18 + Vite |
 | Estilos | Tailwind CSS |
-| Base de datos | Supabase (PostgreSQL) |
-| Almacenamiento de imágenes | Supabase Storage |
+| Base de datos | Supabase (PostgreSQL + Row Level Security) |
+| Autenticación | Supabase Auth |
+| Imágenes | Supabase Storage |
 | Iconos | Lucide React |
-| Persistencia offline | LocalStorage |
+| Despliegue | Vercel |
 
 ---
 
- Sigue a la marca en [Instagram (@zafirocrochet_ve)](https://www.instagram.com/zafirocrochet_ve/)  
+Sigue a la marca en [Instagram (@zafirocrochet_ve)](https://www.instagram.com/zafirocrochet_ve/)
 
 &copy; Zafiro Crochet · Caracas, Venezuela
