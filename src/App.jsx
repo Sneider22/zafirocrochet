@@ -205,7 +205,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1">
-        <Hero />
+        <Hero products={products} onOpenDetail={(prod) => setSelectedDetailProduct(prod)} />
         {loadingProducts ? (
           <div className="flex justify-center items-center py-24">
             <div className="w-10 h-10 rounded-full border-4 border-[#ffccd5] border-t-[#ff4d6d] animate-spin" />
@@ -275,12 +275,14 @@ export default function App() {
         onSaveProduct={handleSaveProduct}
       />
 
-      {/* Notification Banner at bottom */}
-      <Toast 
-        toasts={toasts}
-        onOpenCart={() => setIsCartOpen(true)}
-        onCloseToast={(id) => setToasts(prev => prev.filter(t => t.id !== id))}
-      />
+      {/* Notification Banner at bottom (oculto con el carrito abierto: taparía el botón de WhatsApp) */}
+      {!isCartOpen && (
+        <Toast
+          toasts={toasts}
+          onOpenCart={() => setIsCartOpen(true)}
+          onCloseToast={(id) => setToasts(prev => prev.filter(t => t.id !== id))}
+        />
+      )}
 
       {/* WhatsApp Floating Button */}
       <WhatsAppFAB />

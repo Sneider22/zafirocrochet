@@ -5,13 +5,18 @@ import { normalizeText, matchesSearchQuery } from '../lib/searchUtils';
 
 const CATEGORIES = [
   { id: 'all', label: 'Todos' },
-  { id: 'ramos', label: 'Ramos 🌹' },
-  { id: 'llaveros', label: 'Llaveros 🔑' },
-  { id: 'peluches', label: 'Peluches 🧸' },
-  { id: 'personajes', label: 'Personajes 🎭' },
-  { id: 'snoopy', label: 'Snoopy 🐶' },
-  { id: 'personalizados', label: 'Personalizados ✨' }
+  { id: 'ramos', label: 'Ramos' },
+  { id: 'llaveros', label: 'Llaveros' },
+  { id: 'peluches', label: 'Peluches' },
+  { id: 'personajes', label: 'Personajes' },
+  { id: 'snoopy', label: 'Snoopy' },
+  { id: 'personalizados', label: 'Personalizados' }
 ];
+
+const productInCategory = (p, catId) => {
+  const catArr = Array.isArray(p.category) ? p.category : [p.category];
+  return catArr.some(c => normalizeText(c) === normalizeText(catId));
+};
 
 export default function CatalogSection({ products, onOpenDetail, onAddToCart }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -54,14 +59,28 @@ export default function CatalogSection({ products, onOpenDetail, onAddToCart }) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Portada de cada "historia destacada": la foto de un producto de esa categoría
+  // (sin repetir fotos entre categorías) + cuántos productos tiene
+  const categoryHighlights = useMemo(() => {
+    const usedCovers = new Set();
+    return CATEGORIES.map(cat => {
+      const inCat = cat.id === 'all' ? products : products.filter(p => productInCategory(p, cat.id));
+      let cover = '/logo.jpg';
+      if (cat.id !== 'all') {
+        const pick = inCat.find(p => p.image && !usedCovers.has(p.image)) || inCat.find(p => p.image);
+        if (pick) {
+          cover = pick.image;
+          usedCovers.add(pick.image);
+        }
+      }
+      return { ...cat, cover, count: inCat.length };
+    });
+  }, [products]);
+
   // Filter logic
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      let matchesCat = selectedCategory === 'all';
-      if (!matchesCat) {
-        const catArr = Array.isArray(p.category) ? p.category : [p.category];
-        matchesCat = catArr.some(c => normalizeText(c) === normalizeText(selectedCategory));
-      }
+      const matchesCat = selectedCategory === 'all' || productInCategory(p, selectedCategory);
 
       const matchesSearch = matchesSearchQuery(p, searchTerm);
 
@@ -191,21 +210,48 @@ export default function CatalogSection({ products, onOpenDetail, onAddToCart }) 
           )}
         </div>
 
-        {/* Category Buttons Chips (Centered on desktop, horizontal scroll on mobile) */}
-        <div className="flex items-center justify-start sm:justify-center flex-nowrap sm:flex-wrap gap-1.5 sm:gap-2.5 overflow-x-auto pb-2 px-1 scrollbar-none">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => handleCategoryChange(cat.id)}
-              className={`px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-gradient-to-r from-[#ff8fa3] to-[#ff4d6d] text-white shadow-md shadow-[#ff4d6d]/20 scale-105'
-                  : 'bg-white text-[#590d22] border border-[#ffccd5] hover:bg-[#fff0f3]'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        {/* Categorías tipo "historias destacadas" de Instagram (scroll horizontal en mobile) */}
+        <div className="flex items-start justify-start sm:justify-center gap-2.5 sm:gap-6 overflow-x-auto pt-1 pb-2 px-1 scrollbar-none snap-x">
+          {categoryHighlights.map(cat => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryChange(cat.id)}
+                aria-pressed={isActive}
+                className="group flex flex-col items-center gap-1 shrink-0 w-[60px] sm:w-[84px] snap-start cursor-pointer"
+              >
+                <span
+                  className={`p-[2.5px] rounded-full transition-all duration-300 ${
+                    isActive
+                      ? 'bg-gradient-to-tr from-[#ffb703] via-[#ff4d6d] to-[#c9184a] scale-105 shadow-md shadow-[#ff4d6d]/30'
+                      : 'bg-[#ffccd5] group-hover:bg-[#ff8fa3]'
+                  }`}
+                >
+                  <span className="block p-[2.5px] rounded-full bg-[#fff0f3]">
+                    <img
+                      src={cat.cover}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="w-[50px] h-[50px] sm:w-[72px] sm:h-[72px] rounded-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => { e.target.src = '/logo.jpg'; }}
+                    />
+                  </span>
+                </span>
+                <span
+                  className={`w-full truncate text-center text-[11px] sm:text-xs leading-tight transition-colors ${
+                    isActive ? 'font-black text-[#ff4d6d]' : 'font-bold text-[#590d22]'
+                  }`}
+                >
+                  {cat.label}
+                </span>
+                <span className="text-[10px] font-semibold text-[#800f2f]/50 leading-none">
+                  {cat.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
       </div>
